@@ -1,0 +1,11 @@
+# Backend dependencies for IronSight AI FastAPI service
+# Pinned to versions verified to load models/rf_model.pkl in this repository.
+# Recommended Render Python: 3.14.3 (see .python-version)
+
+fastapi==0.141.1
+uvicorn==0.52.1
+pydantic==2.13.4
+pandas==3.0.5
+numpy==2.5.1
+scikit-learn==1.9.0
+joblib==1.5.3

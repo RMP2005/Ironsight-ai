@@ -1,0 +1,16 @@
+IronSight AI — Baseline Logistic Regression
+==================================================
+
+              precision    recall  f1-score   support
+
+  No Failure       0.99      0.82      0.90      1932
+     Failure       0.14      0.84      0.24        68
+
+    accuracy                           0.82      2000
+   macro avg       0.57      0.83      0.57      2000
+weighted avg       0.96      0.82      0.88      2000
+
+Accuracy:  0.8210
+Precision: 0.1411
+Recall:    0.8382
+F1-Score:  0.2415

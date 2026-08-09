@@ -1,0 +1,9 @@
+# Core dependencies for Ironsight AI
+# Phase 1: Data Analysis
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Phase 2: Baseline ML Model
+scikit-learn>=1.3.0
+joblib>=1.3.0

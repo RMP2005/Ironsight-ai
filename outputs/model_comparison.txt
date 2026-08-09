@@ -1,0 +1,15 @@
+IronSight AI — Model Performance Comparison
+=================================================================
+
+Metric               | Phase 2: Logistic Reg  | Phase 3: Random Forest
+-----------------------------------------------------------------
+Threshold            | 0.50 (Default)         | 0.60                  
+Accuracy             | 0.821                  | 0.9620                
+Precision            | 0.1411                 | 0.4672                
+Recall               | 0.8382                 | 0.8382                
+F1-Score             | 0.2415                 | 0.6000                
+-----------------------------------------------------------------
+True Negatives (TN)  | 1585                   | 1867                  
+False Positives (FP) | 347                    | 65                    
+False Negatives (FN) | 11                     | 11                    
+True Positives (TP)  | 57                     | 57                    

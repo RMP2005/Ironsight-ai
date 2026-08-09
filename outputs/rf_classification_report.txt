@@ -1,0 +1,19 @@
+IronSight AI — Random Forest Model (Phase 3)
+==================================================
+
+Selected Configuration: RF-A
+Selected Threshold:     0.60
+
+              precision    recall  f1-score   support
+
+  No Failure       0.99      0.97      0.98      1932
+     Failure       0.47      0.84      0.60        68
+
+    accuracy                           0.96      2000
+   macro avg       0.73      0.90      0.79      2000
+weighted avg       0.98      0.96      0.97      2000
+
+Accuracy:  0.9620
+Precision: 0.4672
+Recall:    0.8382
+F1-Score:  0.6000
