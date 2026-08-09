@@ -2,15 +2,17 @@ type AppHeaderProps = {
   isOnline: boolean;
 };
 
+import { IronSightEmblem } from "@/components/IronSightEmblem";
+
 export function AppHeader({ isOnline }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="brand">
-        <span className="brand-mark" aria-hidden="true">
-          IS
+        <span className="brand-emblem-wrap" aria-hidden="true">
+          <IronSightEmblem className="brand-emblem" />
         </span>
-        <div>
-          <p className="eyebrow">IronSight AI</p>
+        <div className="brand-copy">
+          <p className="brand-wordmark">IronSight AI</p>
           <p className="brand-subtitle">Predictive Maintenance Decision Support</p>
         </div>
       </div>
@@ -19,7 +21,7 @@ export function AppHeader({ isOnline }: AppHeaderProps) {
         role="status"
         aria-live="polite"
       >
-        <span aria-hidden="true">●</span>
+        <span className="status-dot" aria-hidden="true" />
         System {isOnline ? "Ready" : "Offline"}
       </div>
     </header>

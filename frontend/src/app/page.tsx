@@ -105,7 +105,13 @@ export default function Home() {
 
   return (
     <main className="app-shell">
-      <div className="grid-overlay" aria-hidden="true" />
+      <div className="atmosphere" aria-hidden="true">
+        <div className="grid-overlay" />
+        <div className="grid-overlay grid-overlay-fine" />
+        <div className="telemetry-scan" />
+        <div className="telemetry-rail telemetry-rail-left" />
+        <div className="telemetry-rail telemetry-rail-right" />
+      </div>
       <AppHeader isOnline={backendAvailable} />
       {!backendAvailable ? (
         <section className="offline-panel" aria-live="polite" aria-busy={isLoadingMetadata}>

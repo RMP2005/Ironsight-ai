@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useState, type CSSProperties, type FormEvent } from "react";
 
 import type { FeatureRange, ModelInfo, PredictionRequest } from "@/types/api";
 
@@ -49,12 +49,19 @@ function SensorField({
     hasNumericValue && hasRange
       ? Math.min(100, Math.max(0, ((numericValue - range!.min) / (range!.max - range!.min)) * 100))
       : 50;
+  const markerStyle = { "--marker-pos": `${markerPosition}%` } as CSSProperties;
 
   return (
     <div className={`sensor-field ${isOutside ? "sensor-outside" : ""}`}>
-      <label className="sensor-label" htmlFor={inputId}>
-        {sensor.label}
-      </label>
+      <div className="sensor-field-topline">
+        <label className="sensor-label" htmlFor={inputId}>
+          {sensor.label}
+        </label>
+        <span
+          className={`sensor-status-dot ${isOutside ? "dot-warn" : hasNumericValue ? "dot-ok" : "dot-idle"}`}
+          aria-hidden="true"
+        />
+      </div>
       <div className="input-wrap">
         <input
           id={inputId}
@@ -76,10 +83,10 @@ function SensorField({
           <span className="range-value">
             {range!.min} — {range!.max} {unit}
           </span>
-          <span className="range-scale" aria-hidden="true">
+          <span className="range-scale" aria-hidden="true" style={markerStyle}>
             <span>Min</span>
             <i />
-            <b style={{ left: `${markerPosition}%` }} />
+            <b />
             <span>Max</span>
           </span>
         </>
@@ -137,8 +144,12 @@ export function SensorForm({ modelInfo, isAnalyzing, onAnalyze }: SensorFormProp
           <p className="eyebrow">01 / Sensor telemetry</p>
           <h2 id="sensor-panel-heading">Enter sensor values</h2>
         </div>
-        <span className="panel-code">Live input</span>
+        <span className="panel-code">
+          <span className="panel-code-dot" aria-hidden="true" />
+          Live input
+        </span>
       </div>
+      <div className="panel-rule" aria-hidden="true" />
       <p className="reference-note">
         Reference range reflects values observed in the model&apos;s training data.
       </p>
@@ -168,8 +179,11 @@ export function SensorForm({ modelInfo, isAnalyzing, onAnalyze }: SensorFormProp
           disabled={isAnalyzing}
           aria-busy={isAnalyzing}
         >
-          <span aria-hidden="true">◈</span>
-          {isAnalyzing ? "Analyzing…" : "Analyze machine"}
+          <span className="analyze-button-sweep" aria-hidden="true" />
+          <span className="analyze-button-label">
+            <span aria-hidden="true">◈</span>
+            {isAnalyzing ? "Analyzing…" : "Analyze machine"}
+          </span>
         </button>
       </form>
     </section>
