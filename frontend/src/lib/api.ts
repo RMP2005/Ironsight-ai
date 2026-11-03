@@ -4,6 +4,12 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const GENERIC_API_ERROR = "Unable to complete the request. Please try again.";
 
+const MAX_WAKE_WAIT_MS = 90_000;
+const HEALTH_POLL_MS = 5_000;
+const WAKE_STATUSES = new Set([408, 425, 429, 502, 503, 504]);
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -99,8 +105,57 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function checkHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(getApiUrl("/health"), { cache: "no-store" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// The Render free-tier backend sleeps after inactivity. On a network failure
+// or gateway error, poll /health until the instance wakes, then retry once.
+async function fetchWithWakeRetry(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  const send = () => fetch(getApiUrl(path), init);
+
+  let response: Response;
+  try {
+    response = await send();
+  } catch (networkErr) {
+    console.warn("[api] network failure, waiting for backend:", networkErr);
+    response = await waitForBackend(send);
+  }
+
+  if (WAKE_STATUSES.has(response.status)) {
+    console.warn("[api] gateway status", response.status, "— waiting for backend");
+    response = await waitForBackend(send);
+  }
+
+  return response;
+}
+
+async function waitForBackend(send: () => Promise<Response>): Promise<Response> {
+  const deadline = Date.now() + MAX_WAKE_WAIT_MS;
+  while (Date.now() < deadline) {
+    await sleep(HEALTH_POLL_MS);
+    if (await checkHealth()) {
+      console.log("[api] backend healthy, retrying request");
+      return send();
+    }
+  }
+  throw new ApiError(
+    `Could not reach the backend after ${MAX_WAKE_WAIT_MS / 1000} seconds. ` +
+      "The server may be asleep — please retry.",
+    503,
+  );
+}
+
 export async function getModelInfo(): Promise<ModelInfo> {
-  const response = await fetch(getApiUrl("/model-info"));
+  const response = await fetchWithWakeRetry("/model-info");
 
   return parseResponse<ModelInfo>(response);
 }
@@ -108,7 +163,7 @@ export async function getModelInfo(): Promise<ModelInfo> {
 export async function predictMachine(
   request: PredictionRequest,
 ): Promise<PredictionResponse> {
-  const response = await fetch(getApiUrl("/predict"), {
+  const response = await fetchWithWakeRetry("/predict", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
