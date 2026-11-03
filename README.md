@@ -11,7 +11,7 @@ Predictive Maintenance Intelligence Platform
 </h3>
 
 <p align="center">
-End-to-end machine learning project that predicts industrial machine failures from real-time sensor data.
+End-to-end machine learning project that predicts industrial machine failures from five sensor readings.
 </p>
 
 <br/>
@@ -32,9 +32,23 @@ End-to-end machine learning project that predicts industrial machine failures fr
 
 # 🌟 Overview
 
-IronSight AI is an end-to-end machine learning system that predicts industrial machine failures from real-time sensor data. The project progresses through three phases: exploratory data analysis, baseline logistic regression modeling, and production-ready Random Forest classification with optimized threshold selection.
+IronSight AI is an end-to-end machine learning system that predicts industrial machine failures from five sensor readings. The project progresses through three phases: exploratory data analysis, baseline logistic regression modeling, and a Random Forest classifier with CV-based threshold selection.
 
-The system analyzes five key sensor features — air temperature, process temperature, rotational speed, torque, and tool wear — to predict machine failure events with high recall and precision.
+The system analyzes five key sensor features — air temperature, process temperature, rotational speed, torque, and tool wear — to predict machine failure events.
+
+---
+
+# 💡 Why I Built This
+
+Predictive maintenance writeups usually show a trained model and a metric
+table, and stop there. I wanted the whole path visible: the EDA, the baseline,
+the threshold rule, the locked test set, and an evaluation script anyone can
+rerun to check the numbers.
+
+That is the project — three phases, one reproducible split, and results you
+can verify with a single command.
+
+<!-- TODO(Mayank): make this more personal -->
 
 ---
 
@@ -115,7 +129,10 @@ IronSight AI follows a rigorous 3-phase machine learning pipeline:
 ### Phase 3 — Production Model
 
 - Random Forest classifier with CV-based threshold selection
-- 7-step model selection rule:
+
+#### Methodology
+
+7-step model selection rule:
   1. Stratified 80/20 train-test split (`random_state=42`)
   2. 5-Fold Stratified CV on training data
   3. Evaluate candidate thresholds (`0.30`, `0.40`, `0.50`, `0.60`)
@@ -126,11 +143,35 @@ IronSight AI follows a rigorous 3-phase machine learning pipeline:
 
 ---
 
+## Results (locked 2,000-row test set)
+
+Produced by `src/evaluate.py`, which loads the saved artifacts and scores the
+same stratified 80/20 split (`random_state=42`) without retraining — run on
+2026-11-04. Both rows reproduce the stored metrics in `outputs/`
+(`baseline_metrics.json`, `rf_metrics.json`).
+
+| Model | Threshold | Accuracy | Precision | Recall | F1 | TN | FP | FN | TP |
+|---|---|---|---|---|---|---|---|---|---|
+| Baseline Logistic Regression | 0.50 (default) | 0.8210 | 0.1411 | 0.8382 | 0.2415 | 1585 | 347 | 11 | 57 |
+| Random Forest (saved artifact) | 0.60 (from artifact) | 0.9620 | 0.4672 | 0.8382 | 0.6000 | 1867 | 65 | 11 | 57 |
+
+Both models catch the same 57 of 68 failures on the test set; the Random
+Forest's higher precision comes from cutting false positives from 347 to 65
+at the same recall.
+
+Reproduce:
+
+```bash
+.venv/bin/python src/evaluate.py
+```
+
+---
+
 # ✨ Key Features
 
 ### 📊 Sensor Data Analysis
 
-- Real-time ingestion of industrial sensor telemetry
+- Batch scoring of sensor readings submitted through the API (five features per request)
 - Five key features: temperature, rotational speed, torque, tool wear
 - Feature correlation and distribution analysis
 
@@ -193,35 +234,42 @@ IronSight AI follows a rigorous 3-phase machine learning pipeline:
 
 ```
 ironsight-ai/
+├── assets/
+│   └── ironsight-logo.svg                  # Project logo
 ├── data/
-│   └── ai4i2020.csv                      # Source dataset (read-only)
+│   └── ai4i2020.csv                        # Source dataset (read-only)
 ├── models/
-│   ├── baseline_model.pkl                 # Logistic Regression artifact
-│   └── rf_model.pkl                       # Random Forest + threshold
+│   ├── baseline_model.pkl                  # Logistic Regression artifact
+│   └── rf_model.pkl                        # Random Forest + threshold
 ├── outputs/
-│   ├── failure_distribution.png           # Failure class imbalance
-│   ├── tool_wear_vs_failure.png           # Tool wear comparison
-│   ├── torque_vs_failure.png              # Torque comparison
-│   ├── sensor_correlation_heatmap.png     # Feature correlations
-│   ├── confusion_matrix.png              # Baseline confusion matrix
-│   ├── rf_feature_importance.png         # RF feature importances
-│   ├── rf_threshold_comparison.png       # CV metrics across thresholds
-│   └── rf_confusion_matrix.png           # RF test confusion matrix
+│   ├── failure_distribution.png            # Failure class imbalance
+│   ├── tool_wear_vs_failure.png            # Tool wear comparison
+│   ├── torque_vs_failure.png               # Torque comparison
+│   ├── sensor_correlation_heatmap.png      # Feature correlations
+│   ├── confusion_matrix.png                # Baseline confusion matrix
+│   ├── rf_feature_importance.png           # RF feature importances
+│   ├── rf_threshold_comparison.png         # CV metrics across thresholds
+│   ├── rf_confusion_matrix.png             # RF test confusion matrix
+│   ├── baseline_metrics.json               # Stored baseline metrics
+│   └── rf_metrics.json                     # Stored RF metrics
 ├── src/
-│   ├── train.py                           # Baseline training script
-│   └── train_rf.py                        # RF + threshold tuning
+│   ├── train.py                            # Baseline training script
+│   ├── train_rf.py                         # RF + threshold tuning
+│   └── evaluate.py                         # Re-scores saved artifacts (no retrain)
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                        # FastAPI application
-│   │   ├── predictor.py                   # Model inference
-│   │   ├── validator.py                   # Input validation
-│   │   ├── decision.py                    # Threshold logic
-│   │   └── schemas.py                     # Pydantic models
-│   └── requirements.txt                   # Backend dependencies
+│   │   ├── main.py                         # FastAPI application
+│   │   ├── predictor.py                    # Model inference
+│   │   ├── validator.py                    # Input validation
+│   │   ├── decision.py                     # Threshold logic
+│   │   └── schemas.py                      # Pydantic models
+│   ├── tests/
+│   │   └── test_api.py                     # API tests
+│   └── requirements.txt                    # Backend dependencies
 ├── frontend/
-│   └── src/                               # Next.js application
-├── analysis.py                            # EDA script (Phase 1)
-├── requirements.txt                       # ML dependencies
+│   └── src/                                # Next.js application
+├── analysis.py                             # EDA script (Phase 1)
+├── requirements.txt                        # ML dependencies
 └── README.md
 ```
 
@@ -267,6 +315,15 @@ python src/train.py
 ```bash
 python src/train_rf.py
 ```
+
+### Run Evaluation (no retraining)
+
+```bash
+python src/evaluate.py
+```
+
+Loads the saved artifacts and re-scores the locked 2,000-row test set.
+Stops with an error if the split does not reproduce.
 
 ### Run Backend API
 
@@ -381,6 +438,15 @@ Submit sensor readings and receive a failure prediction.
 <p align="center">
 <img src="outputs/rf_feature_importance.png" width="800" alt="Feature Importance"/>
 </p>
+
+---
+
+# 📌 Dataset & Limitations
+
+- **Dataset**: [AI4I 2020 Predictive Maintenance Dataset](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset) (UCI Machine Learning Repository) — 10,000 rows. The dataset is **synthetic**, generated from a digital twin simulation, not collected from real factory machines.
+- **Test set**: locked stratified 2,000-row split (`random_state=42`) with only **68 failure cases** — metrics move noticeably with a handful of predictions (e.g. 11 false negatives).
+- **Evaluation**: single point-in-time holdout; no time-based split and no external validation on real plant data.
+- **Scope**: portfolio / educational prototype. Not certified or validated for industrial use; predictions should be reviewed by qualified engineering personnel.
 
 ---
 
